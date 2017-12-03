@@ -149,8 +149,6 @@ read_archive:
 		
 		blt $t2, $t1, print_to_disp_loop
 	
-	
-	#move $t4, $a0		#Move the initial adress of display to $t4
 		
 	# update buff and rotate image to be correct
 	addi $sp, $sp, -20
@@ -178,10 +176,6 @@ read_archive:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 20
 	##############################
-	
-	
-	#bgt $t4, $t3, update_buff
-	
 	
 	
 	jr $ra
@@ -225,6 +219,8 @@ rotate_image:
 	
 	jr $ra
 ########################################################################
+
+
 
 #update_display
 ########################################################################

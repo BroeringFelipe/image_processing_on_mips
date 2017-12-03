@@ -33,7 +33,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal flip_hrzt
+jal rotate_color
 
 
 li $v0, 10
@@ -139,8 +139,6 @@ read_archive:
 	move $t3, $a0		#Move the initial adress of display to $t3
 	
 	print_to_disp_loop:
-		sb $zero, 0($t3)
-		
 		lbu $t4, 0($t0)
 		sb  $t4, 0($t3)
 		
@@ -149,6 +147,8 @@ read_archive:
 		
 		lbu $t4, 2($t0)
 		sb  $t4, 2($t3)
+		
+		sb $zero, 3($t3)
 		
 		lw $t4, 0($t3)
 		sw $t4, 0($t3)
@@ -245,6 +245,7 @@ flip_vert:
 ########################################################################
 
 
+
 # flip horizontal
 ########################################################################
 # $a0 = source address
@@ -296,6 +297,58 @@ flip_hrzt:
 	
 	jr $ra
 ########################################################################
+
+
+
+# Rotate color
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+rotate_color:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+	move $t0, $a0
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	
+	li $t3 0
+	
+	loop_rotate_color:
+		lbu $t4, 0($t0)
+		lbu $t5, 1($t0)
+		lbu $t6, 2($t0)
+		
+		sb  $t5, 0($t1)
+		sb  $t6, 1($t1)
+		sb  $t4, 2($t1)
+				
+		lw $t4, 0($t1)
+		sw $t4, 0($t1)
+		
+		addi $t3, $t3, 1
+		addi $t0, $t0, 4
+		addi $t1, $t1, 4	
+		
+	blt $t3, $t2, loop_rotate_color
+	
+	jr $ra
+########################################################################
+
 
 
 

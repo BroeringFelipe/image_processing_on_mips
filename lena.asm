@@ -33,7 +33,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal invert_color
+jal grey_scale
 
 
 li $v0, 10
@@ -401,6 +401,95 @@ invert_color:
 		addi $t1, $t1, 4	
 		
 	blt $t3, $t2, loop_invert_color
+	
+	jr $ra
+########################################################################
+
+
+
+# grey scale
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+grey_scale:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+	move $t0, $a0
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	
+	li $t3, 0
+	
+	li $t7, 2989	#R
+	mtc1 $t7, $f0
+	cvt.s.w $f0, $f0
+	
+	li $t7, 5870	#G
+	mtc1 $t7, $f1
+	cvt.s.w $f1, $f1
+	
+	li $t7, 1140	#B
+	mtc1 $t7, $f2
+	cvt.s.w $f2, $f2
+	
+	li $t7, 10000	#Factor to divide
+	mtc1 $t7, $f3
+	cvt.s.w $f3, $f3
+	
+	div.s $f0, $f0, $f3	#R factor
+	div.s $f1, $f1, $f3	#G factor
+	div.s $f2, $f2, $f3	#B factor
+	
+	loop_grey_scale:
+		lbu $t4, 0($t0)	#Blue
+		mtc1 $t4, $f4
+		cvt.s.w $f4, $f4
+		mul.s $f4, $f4, $f2
+		
+		lbu $t5, 1($t0)	#Green
+		mtc1 $t5, $f5
+		cvt.s.w $f5, $f5
+		mul.s $f5, $f5, $f1
+		
+		lbu $t6, 2($t0)	#Red
+		mtc1 $t6, $f6
+		cvt.s.w $f6, $f6
+		mul.s $f6, $f6, $f0
+		
+		add.s $f4, $f4, $f5
+		add.s $f4, $f4, $f6
+		
+		cvt.w.s $f4, $f4
+		
+		mfc1 $t4, $f4
+		
+		sb  $t4, 0($t1)
+		sb  $t4, 1($t1)
+		sb  $t4, 2($t1)
+				
+		lw $t4, 0($t1)
+		sw $t4, 0($t1)
+		
+		addi $t3, $t3, 1
+		addi $t0, $t0, 4
+		addi $t1, $t1, 4	
+		
+	blt $t3, $t2, loop_grey_scale
 	
 	jr $ra
 ########################################################################

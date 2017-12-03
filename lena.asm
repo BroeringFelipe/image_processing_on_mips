@@ -1,29 +1,39 @@
-.eqv lenght_max 1200000
+.eqv lenght_max 1048576 #1048576 = 512*512*4
+			#4194304 = 1024*1024*4  Doesn't work
 
 .data
 display_bitmap:	.space lenght_max
-buff: .space lenght_max
-bmp_lenght: .word
-width_lenght: .word
-height_lenght: .word
-filename: .asciiz "/home/fbroering/Dropbox/2017-2/MCP/lena/lena"
+buff: 		.space lenght_max
+buff_tmp:	.space lenght_max
+bmp_lenght: 	.word
+width_lenght: 	.word
+height_lenght:	.word
+filename: 	.asciiz "lena.bmp"
 
 .text
-#Call funcion read_archive
+#Call function read_archive
 la $a0, display_bitmap	#Pass the adress of display
 la $a1, buff	#Pass the adress for de buffer
 la $a2, bmp_lenght
 la $a3, filename
 jal read_archive
 
-move $s0, $v0
-move $s1, $v1
-
 la $t0, width_lenght
 sw $v0, 0($t0)
 
 la $t0, height_lenght
 sw $v1, 0($t0)
+
+#Call function rotate_image
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+la $a0, display_bitmap
+la $a1, display_bitmap
+lw $a2, width_lenght
+lw $a3, height_lenght
+jal flip_hrzt
 
 
 li $v0, 10
@@ -150,7 +160,7 @@ read_archive:
 		blt $t2, $t1, print_to_disp_loop
 	
 		
-	# update buff and rotate image to be correct
+	# update buff and flip image to be correct
 	addi $sp, $sp, -20
 	sw $a3, 16($sp)
 	sw $a2, 12($sp)
@@ -163,10 +173,10 @@ read_archive:
 	move $a3, $v1
 		
 	
-	jal rotate_image
+	jal flip_vert
 	lw $a1, 4($sp)
 	lw $a0, 8($sp)
-	jal update_display
+	jal move_image
 	
 	
 	lw $a3, 16($sp)
@@ -182,13 +192,27 @@ read_archive:
 ########################################################################
 
 
-# Rotate image
+# flip vertical
 ########################################################################
 # $a0 = source address
 # $a1 = destination address
 # $a2 = width_lenght
 # $a3 = height_lenght
-rotate_image:
+flip_vert:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp
+
 	move $t0, $a1
 	move $t1, $a0
 	
@@ -199,11 +223,11 @@ rotate_image:
 	
 	add $t1, $t1, $t6
 	li $t3 0
-	loop_inv_1:
+	loop_flip_vert_1:
 		sub $t1, $t1, $t7
 		li $t5 0
 		
-		loop_inv_2:
+		loop_flip_vert_2:
 			lw $t4 ($t1)
 			sw $t4 ($t0)
 		
@@ -211,10 +235,63 @@ rotate_image:
 			addi $t0 $t0 4
 			addi $t3 $t3 4
 			addi $t5 $t5 1
-		blt $t5, $a2, loop_inv_2
+		blt $t5, $a2, loop_flip_vert_2
 		sub $t1, $t1, $t7		
 		
-	blt $t3, $t6, loop_inv_1
+	blt $t3, $t6, loop_flip_vert_1
+	
+	
+	jr $ra
+########################################################################
+
+
+# flip horizontal
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+flip_hrzt:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+	move $t0, $a1
+	move $t1, $a0
+	
+	mul $t7, $a2, 4
+	
+	mul $t2, $a2, $a3	
+	mul $t6, $t2, 4
+
+	
+	li $t3 0
+	loop_flip_hrzt_1:
+		add $t1, $t1, $t7
+		li $t5 0
+		
+		loop_flip_hrzt_2:
+			lw $t4, 0($t1)
+			sw $t4, 0($t0)
+		
+			sub  $t1, $t1, 4
+			addi $t0, $t0, 4
+			addi $t3, $t3, 4
+			addi $t5, $t5, 1
+		blt $t5, $a2, loop_flip_hrzt_2
+		add $t1, $t1, $t7		
+		
+	blt $t3, $t6, loop_flip_hrzt_1
 	
 	
 	jr $ra
@@ -222,20 +299,20 @@ rotate_image:
 
 
 
-#update_display
+#Move image
 ########################################################################
 # $a0 = source address
 # $a1 = destination address
 # $a2 = width_lenght
 # $a3 = height_lenght
-update_display:
+move_image:
 	mul $t0, $a2, $a3
 	li $t1, 0
 	
 	move $t2, $a0
 	move $t3, $a1
 	
-	loop_update_disp:
+	loop_move_image:
 		lw $t4, 0($t2)
 		sw $t4, 0($t3)
 		
@@ -243,7 +320,7 @@ update_display:
 		addi $t3, $t3, 4
 		addi $t1, $t1, 1
 		
-		blt $t1, $t0, loop_update_disp
+		blt $t1, $t0, loop_move_image
 	
 	jr $ra		
 ########################################################################

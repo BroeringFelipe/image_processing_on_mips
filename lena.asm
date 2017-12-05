@@ -33,7 +33,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal grey_scale
+jal fade_out
 
 
 li $v0, 10
@@ -495,6 +495,307 @@ grey_scale:
 ########################################################################
 
 
+# average pixel
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+average_pixel:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+	move $t0, $a0
+	move $t1, $a1
+	
+	mul  $t9, $a2, 4
+	
+	add  $t0, $t0, $t9
+	addi $t0, $t0, 4
+	
+	add  $t1, $t1, $t9
+	addi $t1, $t1, 4
+	
+	mul  $t3, $a2, $a3
+	sub  $t3, $t3, $a2
+	mul  $t3, $t3, 4
+	addi $t3, $t3, -4
+	add  $t3, $t3, $t0
+	
+	
+	li $t6, 1
+	
+	loop_average_pixel:
+		li $t5, 0
+		li $t6, 0
+		li $t7, 0
+		
+		sub  $t2, $t0, $t9
+		addi $t2, $t2, -4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4	
+			
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		#
+		
+		addi $t2, $t0, -4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		#
+		
+		add  $t2, $t0, $t9
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		
+		
+		
+		addi $t2, $t2, 4
+		
+		lbu  $t4, 0($t2)
+		add  $t5, $t5, $t4
+		lbu  $t4, 1($t2)
+		add  $t6, $t6, $t4
+		lbu  $t4, 2($t2)
+		add  $t7, $t7, $t4
+		#
+			
+					
+		div $t5, $t5, 9
+		div $t6, $t6, 9
+		div $t7, $t7, 9
+		sb  $t5, 0($t1)
+		sb  $t6, 1($t1)
+		sb  $t7, 2($t1)
+		
+		lw  $t4, 0($t1)
+		sw  $t4, 0($t1)
+		
+		addi $t6, $t6, 1
+		blt  $t6, $a2, ts_line
+			addi $t0, $t0, 8
+			addi $t1, $t1, 8
+			li   $t6, 1
+		
+		ts_line:
+		addi $t0, $t0, 4
+		addi $t1, $t1, 4
+		
+	blt $t0, $t3, loop_average_pixel
+	
+	jr $ra
+########################################################################
+
+
+
+# Fade in animation
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+fade_out:
+	# Copy the source image to destination
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	jal move_image
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	#move $t0, $a0
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	
+	li $t0, 0
+	li $t3, 0
+	li $t4, 29
+	li $t8, 0
+	li $t9, 5
+	li $t6, 0x00ffffff
+	
+	loop_fade_out_1:
+		loop_fade_out_2:			
+			rem  $t5, $t3, $t4
+			bnez $t5, jump_fade
+			sw   $t6, 0($t1)
+			
+			
+			jump_fade:
+			addi $t3, $t3, 1
+			addi $t0, $t0, 4
+			addi $t1, $t1, 4	
+		
+		blt $t3, $t2, loop_fade_out_2
+		
+		div $t4, $t4, 2
+		move $t1, $a1
+		li $t3, 0
+		addi $t8, $t8, 1
+		
+	blt $t8, $t9, loop_fade_out_2
+	
+	jr $ra
+########################################################################
+
+
+# Fade in animation
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+fade_in:
+	# Clear the destination
+	addi $sp, $sp, -8
+	sw $a0, 4($sp)
+	sw $ra, 0($sp)
+	move $a0, $a1
+	jal clear_screen
+	lw $a0, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	
+	move $t1, $a1
+	move $t6, $a0
+	
+	mul $t2, $a2, $a3
+	
+	
+	li $t3, 0
+	li $t4, 32
+	li $t9, 7
+	
+	
+	mul $t0, $a2, 64
+	div $s0, $t0, 4
+	
+	loop_fade_in_1:
+		loop_fade_in_2:			
+			rem  $t5, $t3, $t4
+			bnez $t5, jump_fade_in_1
+				sw   $t6, 0($t1)
+			
+				rem  $t5, $t3, 1024
+				bnez $t5, jump_fade_in_1
+					add $t1, $t1, $t0
+					sub $t2, $t2, $s0
+			
+			
+			jump_fade_in_1:
+			addi $t2, $t2, -1
+			addi $t1, $t1, 4	
+		
+		bgtz $t2, loop_fade_in_2
+		
+		
+		mul $t2, $a2, $a3
+
+		ble $s0, $a2, jump_fade_in_2
+		div $t0, $t0, 2
+		div $s0, $t0, 4
+		j end_jump_fade_in_2
+		jump_fade_in_2:
+		li $t0, 4
+		li $s0, 1
+		end_jump_fade_in_2:
+		
+		beq $t4, 2, jump_fade_in_3
+		div $t4, $t4, 2
+		jump_fade_in_3:
+		
+		bgt $t9, 2, jump_fade_in_4
+		li $t4, 1
+		jump_fade_in_4:
+		
+		move $t1, $a1
+		li $t3, 0
+		addi $t9, $t9, -1
+		
+	bgtz $t9, loop_fade_in_2
+	
+	jr $ra
+########################################################################
+
+
 
 #Move image
 ########################################################################
@@ -519,5 +820,74 @@ move_image:
 		
 		blt $t1, $t0, loop_move_image
 	
+	jr $ra		
+########################################################################
+
+
+
+#Clear Screen
+########################################################################
+# $a0 = Screen to clear
+# $a2 = width_lenght
+# $a3 = height_lenght
+clear_screen:
+	mul $t0, $a2, $a3
+	li $t1, 0
+	
+	move $t2, $a0
+	li $t4, 0x00ffffff
+	
+	loop_clear_screen:
+		sw $t4, 0($t2)
+		
+		addi $t2, $t2, 4
+		
+		addi $t1, $t1, 1
+		
+		blt $t1, $t0, loop_clear_screen
+	
+	jr $ra		
+########################################################################
+
+
+
+#Get pixel
+########################################################################
+# $a0 = source address
+# $a1 = x
+# $a2 = y
+# $a3 = widht_lenght
+# $v0 returns the value of the pixel
+get_pixel:
+	mul $t0, $a2, $a3
+	add $t0, $t0, $a1
+	add $t0, $t0, $a0
+	
+	li $t1, 0
+	
+	lw $v0, 0($t0)
+		
+	jr $ra		
+########################################################################
+
+
+
+#Save pixel
+########################################################################
+# $a0 = source address
+# $a1 = x
+# $a2 = y
+# $a3 = widht_lenght
+# 0($sp) = value
+# $v0 returns the value of the pixel
+save_pixel:
+	mul $t0, $a2, $a3
+	add $t0, $t0, $a1
+	add $t0, $t0, $a0
+	
+	lw $t1, 0($sp)	
+	
+	sw $t1, 0($t0)
+		
 	jr $ra		
 ########################################################################

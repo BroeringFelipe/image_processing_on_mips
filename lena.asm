@@ -33,7 +33,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal fade_out
+jal fade_in
 
 
 li $v0, 10
@@ -666,7 +666,7 @@ average_pixel:
 
 
 
-# Fade in animation
+# Fade out animation
 ########################################################################
 # $a0 = source address
 # $a1 = destination address
@@ -679,29 +679,27 @@ fade_out:
 	jal move_image
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	
-	#move $t0, $a0
+
 	move $t1, $a1
 	
 	mul $t2, $a2, $a3
 	
-	li $t0, 0
+
 	li $t3, 0
-	li $t4, 29
-	li $t8, 0
-	li $t9, 5
+	li $t4, 47
+
+	li $t9, 6
 	li $t6, 0x00ffffff
 	
 	loop_fade_out_1:
 		loop_fade_out_2:			
 			rem  $t5, $t3, $t4
-			bnez $t5, jump_fade
+			bnez $t5, jump_fade_out
 			sw   $t6, 0($t1)
 			
 			
-			jump_fade:
+			jump_fade_out:
 			addi $t3, $t3, 1
-			addi $t0, $t0, 4
 			addi $t1, $t1, 4	
 		
 		blt $t3, $t2, loop_fade_out_2
@@ -709,12 +707,13 @@ fade_out:
 		div $t4, $t4, 2
 		move $t1, $a1
 		li $t3, 0
-		addi $t8, $t8, 1
+		addi $t9, $t9, -1
 		
-	blt $t8, $t9, loop_fade_out_2
+	bgtz $t9, loop_fade_out_2
 	
 	jr $ra
 ########################################################################
+
 
 
 # Fade in animation
@@ -724,6 +723,22 @@ fade_out:
 # $a2 = width_lenght
 # $a3 = height_lenght
 fade_in:
+
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+
 	# Clear the destination
 	addi $sp, $sp, -8
 	sw $a0, 4($sp)
@@ -735,59 +750,36 @@ fade_in:
 	addi $sp, $sp, 8
 	
 	move $t1, $a1
-	move $t6, $a0
+	move $t0, $a0
 	
 	mul $t2, $a2, $a3
 	
-	
 	li $t3, 0
-	li $t4, 32
-	li $t9, 7
-	
-	
-	mul $t0, $a2, 64
-	div $s0, $t0, 4
+	li $t4, 47
+	li $t9, 6
 	
 	loop_fade_in_1:
 		loop_fade_in_2:			
 			rem  $t5, $t3, $t4
-			bnez $t5, jump_fade_in_1
-				sw   $t6, 0($t1)
-			
-				rem  $t5, $t3, 1024
-				bnez $t5, jump_fade_in_1
-					add $t1, $t1, $t0
-					sub $t2, $t2, $s0
+			bnez $t5, jump_fade_in
+			lw   $t8, 0($t0)
+			sw   $t8, 0($t1)
 			
 			
-			jump_fade_in_1:
-			addi $t2, $t2, -1
+			jump_fade_in:
+			addi $t3, $t3, 1
+			addi $t0, $t0, 4
 			addi $t1, $t1, 4	
 		
-		bgtz $t2, loop_fade_in_2
+		blt $t3, $t2, loop_fade_in_2
 		
-		
-		mul $t2, $a2, $a3
-
-		ble $s0, $a2, jump_fade_in_2
-		div $t0, $t0, 2
-		div $s0, $t0, 4
-		j end_jump_fade_in_2
-		jump_fade_in_2:
-		li $t0, 4
-		li $s0, 1
-		end_jump_fade_in_2:
-		
-		beq $t4, 2, jump_fade_in_3
 		div $t4, $t4, 2
-		jump_fade_in_3:
-		
-		bgt $t9, 2, jump_fade_in_4
-		li $t4, 1
-		jump_fade_in_4:
 		
 		move $t1, $a1
+		move $t0, $a0
+		
 		li $t3, 0
+		
 		addi $t9, $t9, -1
 		
 	bgtz $t9, loop_fade_in_2

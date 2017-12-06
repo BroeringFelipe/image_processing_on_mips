@@ -1,6 +1,8 @@
 .eqv lenght_max 1048576 #1048576 = 512*512*4
 			#4194304 = 1024*1024*4  Doesn't work
 
+.eqv speed_animations 39
+
 .data
 display_bitmap:	.space lenght_max
 buff: 		.space lenght_max
@@ -33,7 +35,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal fade_in
+jal float_1
 
 
 li $v0, 10
@@ -748,6 +750,7 @@ fade_in:
 	lw $a0, 4($sp)
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
+	##############################
 	
 	move $t1, $a1
 	move $t0, $a0
@@ -783,6 +786,174 @@ fade_in:
 		addi $t9, $t9, -1
 		
 	bgtz $t9, loop_fade_in_2
+	
+	jr $ra
+########################################################################
+
+
+
+# Float 1
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+float_1:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+
+	# Clear the destination
+	addi $sp, $sp, -8
+	sw $a0, 4($sp)
+	sw $ra, 0($sp)
+	move $a0, $a1
+	jal clear_screen
+	lw $a0, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	
+	mul $t2, $a2, $a3
+	
+	mul $t6, $a2, 2
+	mul $t6, $t6, 4
+	
+	mul $t7, $t2, 4
+	
+	move $t0, $a0
+	add $t1, $a1, $t7
+	
+	move $t7, $a2
+
+	mul $t8, $a2, 4
+	mul $t8, $a2, speed_animations
+	
+	loop_float_1_1:
+		
+		add $t7, $t7, $t8
+		blt $t7, $t2, jump_lf_1
+		move $t7, $t2
+		
+		
+		
+		jump_lf_1:
+		li  $t3, 0
+
+		mul $t6, $t7, 4
+		
+		sub $t1, $t1, $t6
+		move $t0, $a0
+	
+		
+	
+		loop_float_1_2:
+			lw $t4, 0($t0)
+			sw $t4, 0($t1)
+		
+			addi $t3, $t3, 1
+			addi $t0, $t0, 4
+			addi $t1, $t1, 4
+			
+			rem  $t5, $t3, $t7
+			bnez $t5, loop_float_1_2
+		
+		#addi $sp, $sp, -4
+		#sw $ra, 0($sp)
+		#jal delay_1
+		#lw $ra, 0($sp)
+		#addi $sp, $sp, 4
+		
+	blt $t7, $t2, loop_float_1_1
+	
+	jr $ra
+########################################################################
+# Float 2
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+float_2:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+	
+	mul $t2, $a2, $a3
+
+	move $t0, $a0
+	move $t1, $a1
+
+	
+	mul $t8, $a2, 4 # 4 is the lenght of a word
+	mul $t8, $a2, speed_animations
+	
+	mul $t9, $t2, 4
+	add $t9, $t9, $t1
+	
+	li $t7, 0
+	li $t6, 0
+	
+	li $t3, 0x00ffffff
+	
+	loop_float_2_1:
+		
+		add $t7, $t7, $t8
+		
+		blt $t7, $t2, jump_lf_2
+			move $t7, $t2			
+		jump_lf_2:
+		
+		add $t1, $a1, $t6
+		
+		mul $t6, $t7, 4
+		add $t4, $t6, $a1 
+		
+		loop_clean_float_2:
+			sw   $t3, 0($t1)
+			addi $t1, $t1, 4
+		blt $t1, $t4, loop_clean_float_2
+		
+		move $t0, $a0
+	
+		loop_float_2_2:
+			lw $t4, 0($t0)
+			sw $t4, 0($t1)
+		
+			addi $t0, $t0, 4
+			addi $t1, $t1, 4
+			
+			blt $t1, $t9, loop_float_2_2
+			
+		
+		#addi $sp, $sp, -4
+		#sw $ra, 0($sp)
+		#jal delay_1
+		#lw $ra, 0($sp)
+		#addi $sp, $sp, 4
+		
+	blt $t7, $t2, loop_float_2_1
 	
 	jr $ra
 ########################################################################
@@ -882,4 +1053,14 @@ save_pixel:
 	sw $t1, 0($t0)
 		
 	jr $ra		
+########################################################################
+
+#Save pixel
+########################################################################
+delay_1:
+    li      $t9, 1000
+    addi    $t9, $t9, -1
+    bgez    $t9, delay_1    
+
+    jr      $ra
 ########################################################################

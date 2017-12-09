@@ -37,7 +37,7 @@ la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal bar_4
+jal split_2
 
 
 
@@ -1397,6 +1397,169 @@ bar_4:
 
 
 
+# split_1 animation
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+split_1:
+	# Copy the source image to destination
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	jal move_image
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	
+
+	li  $t3, 4	#word_length
+	mul $t4, $a2, 4
+	sub $t5, $t4, $t3
+
+	mul  $t9, $t3, 2
+	addi $t9, $t9, -4
+
+	mul $t8, $t2, 4
+	add $t8, $t8, $t1
+	
+	li $t6, without_color
+	
+	loop_split_1_1:
+		loop_split_1_2:	
+			
+			sw   $t6, 0($t1)
+			add  $t1, $t1, $t5
+			sw   $t6, 0($t1)
+			add  $t1, $t1, $t9	
+		
+		blt $t1, $t8, loop_split_1_2
+		
+		move $t1, $a1
+		add  $t1, $t1, $t3
+			
+		addi $t3, $t3, 4
+		addi $t5, $t5, -8
+		
+		mul  $t9, $t3, 2
+		subi $t9, $t9, 4		
+		
+		#Activate the delay for the animation to slow down 
+		#addi $sp, $sp, -8
+		#sw $t9, 4($sp)
+		#sw $ra, 0($sp)
+		#jal delay_1
+		#lw $t9, 4($sp)
+		#lw $ra, 0($sp)
+		#addi $sp, $sp, 8
+		
+		
+	bgtz $t5, loop_split_1_1
+	
+	jr $ra
+########################################################################
+
+
+
+# split_2 animation
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+split_2:
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+
+	# Clear the destination
+	addi $sp, $sp, -8
+	sw $a0, 4($sp)
+	sw $ra, 0($sp)
+	move $a0, $a1
+	jal clear_screen
+	lw $a0, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	
+	move $t0, $a0
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	
+
+	li  $t3, 4	#word_length
+	mul $t4, $a2, 4
+	sub $t5, $t4, $t3
+
+	mul  $t9, $t3, 2
+	addi $t9, $t9, -4
+
+	mul $t8, $t2, 4
+	add $t8, $t8, $t1
+	
+	#li $t6, without_color
+	
+	loop_split_2_1:
+		loop_split_2_2:	
+			lw   $t6, 0($t0)
+			sw   $t6, 0($t1)
+			
+			add  $t0, $t0, $t5
+			add  $t1, $t1, $t5
+			
+			lw   $t6, 0($t0)
+			sw   $t6, 0($t1)
+			
+			add  $t0, $t0, $t9
+			add  $t1, $t1, $t9	
+		
+		blt $t1, $t8, loop_split_2_2
+		
+		move $t0, $a0
+		move $t1, $a1
+		
+		add  $t0, $t0, $t3
+		add  $t1, $t1, $t3
+			
+		addi $t3, $t3, 4
+		addi $t5, $t5, -8
+		
+		mul  $t9, $t3, 2
+		subi $t9, $t9, 4		
+		
+		#Activate the delay for the animation to slow down 
+		#addi $sp, $sp, -8
+		#sw $t9, 4($sp)
+		#sw $ra, 0($sp)
+		#jal delay_1
+		#lw $t9, 4($sp)
+		#lw $ra, 0($sp)
+		#addi $sp, $sp, 8
+		
+		
+	bgtz $t5, loop_split_2_1
+	
+	jr $ra
+########################################################################
+
+
+
 #Move image
 ########################################################################
 # $a0 = source address
@@ -1495,9 +1658,11 @@ save_pixel:
 #Save pixel
 ########################################################################
 delay_1:
-    li      $t9, 1000
-    addi    $t9, $t9, -1
-    bgez    $t9, delay_1    
+    li      $t9, 10000
+    
+    loop_delay_1:
+    	addi    $t9, $t9, -1
+    	bgez    $t9, loop_delay_1    
 
     jr      $ra
 ########################################################################

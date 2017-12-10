@@ -9,12 +9,18 @@
 display_bitmap:	.space lenght_max
 buff: 		.space lenght_max
 buff_tmp:	.space lenght_max
-bmp_lenght: 	.word
-width_lenght: 	.word
-height_lenght:	.word
-width_offset: 	.word
-height_offset:	.word
+
+bmp_lenght: 	.word	0
+
+width_lenght: 	.word	0
+height_lenght:	.word	0
+
+width_offset: 	.word	0
+height_offset:	.word	0
+
 filename: 	.asciiz "lena.bmp"
+
+
 
 .text
 #Call function read_archive
@@ -36,21 +42,22 @@ sw $v1, 0($t0)
 # $a2 = width_lenght
 # $a3 = height_lenght
 
-#li $t6, 256
-#li $t7, 256
+li $t6, 128
+li $t7, 128
 
-#la $t0, width_offset
-#la $t1, height_offset
+la $t0, width_offset
+la $t1, height_offset
 
-#sw $t6, 0($t0)
-#sw $t7, 0($t1)
+sw $t6, width_offset
+sw $t7, height_offset
 
-#lw $t6, 0($t0)
-#lw $t7, 0($t1)
+lw $t6, width_offset
+lw $t7, height_offset
 
-#addi $sp, $sp, -8
-#sw $t6, 4($sp)
-#sw $t7, 0($sp)
+addi $sp, $sp, -12
+sw $t6, 0($sp)
+sw $t7, 4($sp)
+sw $t8, 8($sp)
 
 la $a0, display_bitmap
 la $a1, display_bitmap
@@ -1599,10 +1606,6 @@ split_2:
 # 0($sp) = height_offset
 
 zoom:
-	lw $t6, 4($sp)
-	lw $t7, 0($sp)
-	addi $sp, $sp, 8
-	
 	# Copy the source image to buffer to be processed
 	addi $sp, $sp, -8
 	sw $a1, 4($sp)
@@ -1616,7 +1619,24 @@ zoom:
 	addi $sp, $sp, 8
 	##############################
 	la $a0, buff_tmp	#Update the source address to buff_tmp
-
+	
+	lw $t6, 0($sp)
+	lw $t7, 4($sp)
+	lw $t8, 8($sp)
+	addi $sp, $sp, 12
+	
+	# Save all $sx registers
+	addi $sp, $sp, -32
+	sw $s0, 0($sp)
+	sw $s1, 4($sp)
+	sw $s2, 8($sp)
+	sw $s3, 12($sp)
+	sw $s4, 16($sp)
+	sw $s5, 20($sp)
+	sw $s6, 24($sp)
+	sw $s7, 28($sp)
+	
+	
 	move $t0, $a0
 	move $t1, $a1
 	
@@ -1624,12 +1644,12 @@ zoom:
 	li  $t3, 0
 
 	#li $t6, offset
-	li  $t6, 256	# 0 to 256
+	#li  $t6, 256	# 0 to 256
 	mul $t6, $t6, 4
 	add $t0, $t0, $t6
 	
 	#li $t6, offset
-	li  $t7, 256	# 0 to 256
+	#li  $t7, 256	# 0 to 256
 	mul $t7, $t7, $a3
 	mul $t7, $t7, 4
 	add $t0, $t0, $t7
@@ -1637,28 +1657,45 @@ zoom:
 	mul $t8, $t2, 4
 	add $t8, $t8, $t1
 
-	loop_zoom:
+	loop_zoom_1:
+	
+	
+	
+		loop_zoom_2:
 		
-		lw $t9, 0($t0)
-		sw $t9, 0($t1)
-		sw $t9, 4($t1)
-		sw $t9, 2048($t1)
-		sw $t9, 2052($t1)
+			lw $t9, 0($t0)
+			sw $t9, 0($t1)
+			sw $t9, 4($t1)
+			sw $t9, 2048($t1)
+			sw $t9, 2052($t1)
 		
-		addi $t0, $t0, 4
-		addi $t1, $t1, 8
-		addi $t3, $t3, 1
+			addi $t0, $t0, 4
+			addi $t1, $t1, 8
+			addi $t3, $t3, 1
 		
-		div  $t4, $a2, 2
-		rem  $t4, $t3, $t4
-		bnez $t4, loop_zoom
+			div  $t4, $a2, 2
+			rem  $t4, $t3, $t4
+			bnez $t4, loop_zoom_2
 		
-		mul $t4, $a2, 2
-		add $t0, $t0, $t4
+			mul $t4, $a2, 2
+			add $t0, $t0, $t4
 		
-		addi $t1, $t1, 2048
+			addi $t1, $t1, 2048
 				
-	blt $t1, $t8, loop_zoom
+		blt $t1, $t8, loop_zoom_2
+	
+	
+	
+	# Load all saved $sx registers
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	lw $s4, 16($sp)
+	lw $s5, 20($sp)
+	lw $s6, 24($sp)
+	lw $s7, 28($sp)
+	addi $sp, $sp, 32
 	
 	jr $ra
 ########################################################################

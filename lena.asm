@@ -12,6 +12,8 @@ buff_tmp:	.space lenght_max
 bmp_lenght: 	.word
 width_lenght: 	.word
 height_lenght:	.word
+width_offset: 	.word
+height_offset:	.word
 filename: 	.asciiz "lena.bmp"
 
 .text
@@ -28,16 +30,33 @@ sw $v0, 0($t0)
 la $t0, height_lenght
 sw $v1, 0($t0)
 
-#Call function rotate_image
+#Call functions
 # $a0 = source address
 # $a1 = destination address
 # $a2 = width_lenght
 # $a3 = height_lenght
+
+#li $t6, 256
+#li $t7, 256
+
+#la $t0, width_offset
+#la $t1, height_offset
+
+#sw $t6, 0($t0)
+#sw $t7, 0($t1)
+
+#lw $t6, 0($t0)
+#lw $t7, 0($t1)
+
+#addi $sp, $sp, -8
+#sw $t6, 4($sp)
+#sw $t7, 0($sp)
+
 la $a0, display_bitmap
 la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
-jal split_2
+jal zoom
 
 
 
@@ -1299,6 +1318,15 @@ bar_3:
 			
 			bgt $t1, $t8, jump_loop_bar_3_2
 			
+			#Activate the delay for the animation to slow down 
+			#addi $sp, $sp, -8
+			#sw $t9, 4($sp)
+			#sw $ra, 0($sp)
+			#jal delay_1
+			#lw $t9, 4($sp)
+			#lw $ra, 0($sp)
+			#addi $sp, $sp, 8
+					
 			loop_bar_3_3:
 				sw   $t6, 0($t1)
 				addi $t3, $t3, 1
@@ -1311,6 +1339,7 @@ bar_3:
 		div $t4, $t4, 2
 		move $t1, $a1	
 	
+
 	bge $t4, $t7, loop_bar_3_1
 	
 	jr $ra
@@ -1554,6 +1583,82 @@ split_2:
 		
 		
 	bgtz $t5, loop_split_2_1
+	
+	jr $ra
+########################################################################
+
+
+
+# zoom
+########################################################################
+# $a0 = source address
+# $a1 = destination address
+# $a2 = width_lenght
+# $a3 = height_lenght
+# 4($sp) = width_offset
+# 0($sp) = height_offset
+
+zoom:
+	lw $t6, 4($sp)
+	lw $t7, 0($sp)
+	addi $sp, $sp, 8
+	
+	# Copy the source image to buffer to be processed
+	addi $sp, $sp, -8
+	sw $a1, 4($sp)
+	sw $ra, 0($sp)
+
+	la $a1, buff_tmp
+	jal move_image
+	
+	lw $a1, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	##############################
+	la $a0, buff_tmp	#Update the source address to buff_tmp
+
+	move $t0, $a0
+	move $t1, $a1
+	
+	mul $t2, $a2, $a3
+	li  $t3, 0
+
+	#li $t6, offset
+	li  $t6, 256	# 0 to 256
+	mul $t6, $t6, 4
+	add $t0, $t0, $t6
+	
+	#li $t6, offset
+	li  $t7, 256	# 0 to 256
+	mul $t7, $t7, $a3
+	mul $t7, $t7, 4
+	add $t0, $t0, $t7
+	
+	mul $t8, $t2, 4
+	add $t8, $t8, $t1
+
+	loop_zoom:
+		
+		lw $t9, 0($t0)
+		sw $t9, 0($t1)
+		sw $t9, 4($t1)
+		sw $t9, 2048($t1)
+		sw $t9, 2052($t1)
+		
+		addi $t0, $t0, 4
+		addi $t1, $t1, 8
+		addi $t3, $t3, 1
+		
+		div  $t4, $a2, 2
+		rem  $t4, $t3, $t4
+		bnez $t4, loop_zoom
+		
+		mul $t4, $a2, 2
+		add $t0, $t0, $t4
+		
+		addi $t1, $t1, 2048
+				
+	blt $t1, $t8, loop_zoom
 	
 	jr $ra
 ########################################################################

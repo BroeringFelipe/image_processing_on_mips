@@ -68,6 +68,16 @@ sw $v1, 0($t0)
 	beq $s7, 105, option_fade_in 	# Fade in i
 	beq $s7, 111, option_fade_out 	# Fade out o
 	
+	beq $s7, 118, option_flip_vert	# Flip horizontal v 
+	beq $s7, 117, option_flip_hrzt	# Flip vertical u
+	
+	beq $s7, 116, option_rotate_color	# Rotacao de cores t
+	beq $s7, 115, option_invert_color	# Iverter cores s
+	beq $s7,  99, option_grey_scale		# Escala de cinza c
+	beq $s7, 109, option_average_pixel	# Media dos pixels m
+	
+	beq $s7, 114, option_reset 	# Reset r
+	
 	beq $s7, 113, option_quit 	# Quit
 	
 	j main_loop
@@ -94,136 +104,235 @@ sw $v1, 0($t0)
 		
 		
 	option_split_1:	# Dividir e
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal split_1
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 		
 	option_split_2:	# Dividir f
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal split_2
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_bar_1: 	# Barras g
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal bar_1
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_bar_2: 	# Barras h
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal bar_2
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_bar_3: 	# Barras w
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal bar_3
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_bar_4: 	# Barras x
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal bar_4
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 		
 	option_float_1:	# Flutuar a
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal float_1
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_float_2:	# Flutuar b
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal float_2
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_float_3:	# Flutuar y
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal float_3
 		
-		li $s7, 0
-		sw $s7, keyboard
 		j main_loop
 	
 	option_float_4:	# Flutuar z
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal float_4
-		
-		li $s7, 0
-		sw $s7, keyboard
+	
 		j main_loop
 		
 	option_fade_in: # Fade in i
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, buff
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal fade_in
-		
-		li $s7, 0
-		sw $s7, keyboard
+	
 		j main_loop
 		
 	option_fade_out:# Fade out o
+		li $s7, 0
+		sw $s7, keyboard
+		
 		la $a0, display_bitmap
 		la $a1, display_bitmap
 		lw $a2, width_lenght
 		lw $a3, height_lenght
 		jal fade_out
 		
+		j main_loop
+	
+	option_flip_vert:	# Flip horizontal v 
 		li $s7, 0
 		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal flip_vert
+		
 		j main_loop
+	
+	option_flip_hrzt:	# Flip vertical u
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal flip_hrzt
+		
+		j main_loop
+	
+	
+	option_rotate_color:	# Rotacao de cores t
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal rotate_color
+		
+		j main_loop
+	
+	option_invert_color:	# Iverter cores s
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal invert_color
+		
+		j main_loop
+	
+	option_grey_scale:	# Escala de cinza c
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal grey_scale
+		
+		j main_loop
+	
+	option_average_pixel:	# Media dos pixels m
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal average_pixel
+		
+		j main_loop
+	
+	
+	option_reset: 	# Reset r
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap	#Pass the adress of display
+		la $a1, buff	#Pass the adress for de buffer
+		la $a2, bmp_lenght
+		la $a3, filename
+		jal read_archive
+		
+		j main_loop
+	
 		
 	option_quit:
 		li $s7, 0
@@ -719,6 +828,7 @@ grey_scale:
 ########################################################################
 
 
+
 # average pixel
 ########################################################################
 # $a0 = source address
@@ -898,11 +1008,12 @@ average_pixel:
 # $a3 = height_lenght
 fade_out:
 	# Copy the source image to destination
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-	jal move_image
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	# If uncommented, the effect occurs on the source image
+	#addi $sp, $sp, -4
+	#sw $ra, 0($sp)
+	#jal move_image
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 4
 
 	move $t1, $a1
 	
@@ -1369,11 +1480,12 @@ float_4:
 # $a3 = height_lenght
 bar_1:
 	# Copy the source image to destination
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-	jal move_image
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	# If uncommented, the effect occurs on the source image
+	#addi $sp, $sp, -4
+	#sw $ra, 0($sp)
+	#jal move_image
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 4
 
 	move $t1, $a1
 	
@@ -1494,11 +1606,12 @@ bar_2:
 # $a3 = height_lenght
 bar_3:
 	# Copy the source image to destination
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-	jal move_image
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	# If uncommented, the effect occurs on the source image
+	#addi $sp, $sp, -4
+	#sw $ra, 0($sp)
+	#jal move_image
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 4
 
 	move $t1, $a1
 	
@@ -1639,11 +1752,12 @@ bar_4:
 # $a3 = height_lenght
 split_1:
 	# Copy the source image to destination
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-	jal move_image
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	# If uncommented, the effect occurs on the source image
+	#addi $sp, $sp, -4
+	#sw $ra, 0($sp)
+	#jal move_image
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 4
 
 	move $t1, $a1
 	

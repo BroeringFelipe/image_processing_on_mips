@@ -18,11 +18,16 @@ height_lenght:	.word	0
 width_offset: 	.word	0
 height_offset:	.word	0
 
+keyboard:	.word	0
+
 filename: 	.asciiz "lena.bmp"
 
 
 
 .text
+
+jal interrupcao
+
 #Call function read_archive
 la $a0, display_bitmap	#Pass the adress of display
 la $a1, buff	#Pass the adress for de buffer
@@ -36,14 +41,207 @@ sw $v0, 0($t0)
 la $t0, height_lenght
 sw $v1, 0($t0)
 
+	main_loop:
+	lw $s7, keyboard
+	
+	beq $s7,  43, option_zoom_1	# Zoom +
+	beq $s7,  45, option_zoom_0	# Zoom -
+	
+	beq $s7,  37, option_se 	# Seta para Esquerda
+	beq $s7,  38, option_sc		# Seta para Cima
+	beq $s7,  39, option_sd 	# Seta para Direita
+	beq $s7,  40, option_sb 	# Seta para Baixo
+	
+	beq $s7, 101, option_split_1 	# Dividir e
+	beq $s7, 102, option_split_2 	# Dividir f
+	
+	beq $s7, 103, option_bar_1 	# Barras g
+	beq $s7, 104, option_bar_2 	# Barras h
+	beq $s7, 119, option_bar_3 	# Barras w
+	beq $s7, 120, option_bar_4 	# Barras x
+	
+	beq $s7,  97, option_float_1 	# Flutuar a
+	beq $s7,  98, option_float_2 	# Flutuar b
+	beq $s7, 121, option_float_3 	# Flutuar y
+	beq $s7, 122, option_float_4 	# Flutuar z
+	
+	beq $s7, 105, option_fade_in 	# Fade in i
+	beq $s7, 111, option_fade_out 	# Fade out o
+	
+	beq $s7, 113, option_quit 	# Quit
+	
+	j main_loop
+	
+	option_zoom_1:	# Zoom +
+		j main_loop
+	
+	
+	option_zoom_0:	# Zoom -
+		j main_loop
+		
+		
+	option_se: 	# Seta para Esquerda
+		j main_loop
+		
+	option_sc:	# Seta para Cima
+		j main_loop
+	
+	option_sd: 	# Seta para Direita
+		j main_loop
+	
+	option_sb: 	# Seta para Baixo
+		j main_loop
+		
+		
+	option_split_1:	# Dividir e
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal split_1
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+		
+	option_split_2:	# Dividir f
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal split_2
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_bar_1: 	# Barras g
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal bar_1
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_bar_2: 	# Barras h
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal bar_2
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_bar_3: 	# Barras w
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal bar_3
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_bar_4: 	# Barras x
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal bar_4
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+		
+	option_float_1:	# Flutuar a
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal float_1
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_float_2:	# Flutuar b
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal float_2
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_float_3:	# Flutuar y
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal float_3
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+	
+	option_float_4:	# Flutuar z
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal float_4
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+		
+	option_fade_in: # Fade in i
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal fade_in
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+		
+	option_fade_out:# Fade out o
+		la $a0, display_bitmap
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal fade_out
+		
+		li $s7, 0
+		sw $s7, keyboard
+		j main_loop
+		
+	option_quit:
+		li $s7, 0
+		li $v0 10
+		syscall
+
+
+
+
 #Call functions
 # $a0 = source address
 # $a1 = destination address
 # $a2 = width_lenght
 # $a3 = height_lenght
 
-li $t6, 128
-li $t7, 128
+li $t6, 32896
+li $t7, 32896
+li $t8, 1
 
 la $t0, width_offset
 la $t1, height_offset
@@ -64,11 +262,6 @@ la $a1, display_bitmap
 lw $a2, width_lenght
 lw $a3, height_lenght
 jal zoom
-
-
-
-li $v0, 10
-syscall
 
 
 #abre arquivo
@@ -771,14 +964,15 @@ fade_in:
 
 
 	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 	
 	move $t1, $a1
@@ -844,14 +1038,15 @@ float_1:
 
 
 	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 	
 	mul $t2, $a2, $a3
@@ -934,14 +1129,15 @@ float_3:
 
 
 	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 	
 	mul $t2, $a2, $a3
@@ -1239,14 +1435,15 @@ bar_2:
 
 
 	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 	
 	move $t1, $a1
@@ -1377,14 +1574,15 @@ bar_4:
 
 
 	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 
 	move $t1, $a1
@@ -1522,15 +1720,16 @@ split_2:
 	la $a0, buff_tmp	#Update the source address to buff_tmp
 
 
-	# Clear the destination
-	addi $sp, $sp, -8
-	sw $a0, 4($sp)
-	sw $ra, 0($sp)
-	move $a0, $a1
-	jal clear_screen
-	lw $a0, 4($sp)
-	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	# Clear the destination 
+	# If uncommented, the screen is cleaned before the effect
+	#addi $sp, $sp, -8
+	#sw $a0, 4($sp)
+	#sw $ra, 0($sp)
+	#move $a0, $a1
+	#jal clear_screen
+	#lw $a0, 4($sp)
+	#lw $ra, 0($sp)
+	#addi $sp, $sp, 8
 	##############################
 	
 	move $t0, $a0
@@ -1602,9 +1801,9 @@ split_2:
 # $a1 = destination address
 # $a2 = width_lenght
 # $a3 = height_lenght
+# 8($sp) = n zoom
 # 4($sp) = width_offset
 # 0($sp) = height_offset
-
 zoom:
 	# Copy the source image to buffer to be processed
 	addi $sp, $sp, -8
@@ -1618,12 +1817,14 @@ zoom:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
 	##############################
-	la $a0, buff_tmp	#Update the source address to buff_tmp
+	la   $a0, buff_tmp	#Update the source address to buff_tmp
+	
 	
 	lw $t6, 0($sp)
 	lw $t7, 4($sp)
 	lw $t8, 8($sp)
 	addi $sp, $sp, 12
+	
 	
 	# Save all $sx registers
 	addi $sp, $sp, -32
@@ -1635,7 +1836,16 @@ zoom:
 	sw $s5, 20($sp)
 	sw $s6, 24($sp)
 	sw $s7, 28($sp)
+	########################
 	
+	move $s0, $t8
+	move $s1, $t7
+	move $s2, $t6
+	
+	div  $s3, $a2, 2
+	div  $s4, $a3, 2
+	
+	loop_zoom_1:
 	
 	move $t0, $a0
 	move $t1, $a1
@@ -1643,21 +1853,22 @@ zoom:
 	mul $t2, $a2, $a3
 	li  $t3, 0
 
-	#li $t6, offset
-	#li  $t6, 256	# 0 to 256
+
+	rem $t6, $s2, $s3
 	mul $t6, $t6, 4
 	add $t0, $t0, $t6
 	
-	#li $t6, offset
-	#li  $t7, 256	# 0 to 256
+
+	rem $t7, $s1, $s4
 	mul $t7, $t7, $a3
 	mul $t7, $t7, 4
 	add $t0, $t0, $t7
 	
+	
 	mul $t8, $t2, 4
 	add $t8, $t8, $t1
 
-	loop_zoom_1:
+	#loop_zoom_1:
 	
 	
 	
@@ -1683,8 +1894,31 @@ zoom:
 			addi $t1, $t1, 2048
 				
 		blt $t1, $t8, loop_zoom_2
-	
-	
+		
+		
+		
+		addi $s0, $s0, -1
+		div  $s2, $s2, $s3
+		div  $s1, $s1, $s4
+		
+		# Copy the source image to buffer to be processed
+		addi $sp, $sp, -12
+		sw   $a0, 8($sp)
+		sw   $a1, 4($sp)
+		sw   $ra, 0($sp)
+		
+		move $a0, $a1
+		la   $a1, buff_tmp
+		jal  move_image
+		
+		lw   $a0, 8($sp)
+		lw   $a1, 4($sp)
+		lw   $ra, 0($sp)
+		addi $sp, $sp, 12
+		##############################
+		la   $a0, buff_tmp####	#Update the source address to buff_tmp
+		
+	bgez $s0, loop_zoom_1
 	
 	# Load all saved $sx registers
 	lw $s0, 0($sp)
@@ -1702,7 +1936,7 @@ zoom:
 
 
 
-#Move image
+# Move image
 ########################################################################
 # $a0 = source address
 # $a1 = destination address
@@ -1730,7 +1964,7 @@ move_image:
 
 
 
-#Clear Screen
+# Clear Screen
 ########################################################################
 # $a0 = Screen to clear
 # $a2 = width_lenght
@@ -1756,7 +1990,7 @@ clear_screen:
 
 
 
-#Get pixel
+# Get pixel
 ########################################################################
 # $a0 = source address
 # $a1 = x
@@ -1777,7 +2011,7 @@ get_pixel:
 
 
 
-#Save pixel
+# Save pixel
 ########################################################################
 # $a0 = source address
 # $a1 = x
@@ -1797,7 +2031,9 @@ save_pixel:
 	jr $ra		
 ########################################################################
 
-#Save pixel
+
+
+# Delay
 ########################################################################
 delay_1:
     li      $t9, 10000
@@ -1808,3 +2044,78 @@ delay_1:
 
     jr      $ra
 ########################################################################
+
+
+
+# Interrupcao
+########################################################################
+interrupcao:
+
+	mfc0	$t0, $12		# Le o Status de interrupcao
+	andi	$t0, $t0, 0xFFFE	# Remove ultimo bit
+	mtc0    $t0, $12		# Desabilita as interrupcoes	
+	
+	lui     $t0,0xffff		# Carrega endereco do controle do teclado
+	lw	$t1,0($t0)	        # Le informacao do controle
+	ori	$t1,$t1,0x0002		# Adiciona bit para habilitar interrupcoes pelo teclado
+	sw	$t1,0($t0)	        # Habilita interrupcoes do teclado
+	
+	mfc0	$t0, $12		# Le Status de interrupcao
+	ori	$t0, $t0, 0x0001	# Adiciona bit de interrupcao
+	mtc0    $t0, $12		# Habilita interrupcoes
+	
+	jr	$ra
+########################################################################
+
+
+
+.ktext 0x80000180
+interrupt:
+	addiu	$sp,$sp,-48
+	sw	$at,44($sp)
+	sw	$ra,40($sp)
+	sw	$a1,36($sp)
+	sw	$a0,32($sp)
+	sw	$v0,28($sp)
+	sw	$s0,24($sp)
+	sw	$t5,20($sp)
+	sw	$t4,16($sp)
+	sw	$t3,12($sp)
+	sw	$t2,8($sp)
+	sw	$t1,4($sp)
+	sw	$t0,0($sp)	
+	
+	# Leitura do caracter no endereco de memoria reservado para o teclado
+	lui     $t0,0xffff		# get address of control regs
+	lw	$t1,0($t0)	        # read rcv ctrl
+	andi	$t1,$t1,0x0001		# extract ready bit
+	beq	$t1,$0,intDone		#
+
+	lw	$t5,4($t0)
+	sw	$t5,keyboard
+	
+	# Tratamente do proximo endereco para retorno
+	mfc0  $k0, $14  		# $k0 = EPC 
+	addiu  $k0, $k0, 4  		# Increment $k0 by 4 
+	mtc0  $k0, $14  		# EPC = point to next instruction 
+	
+intDone:
+	# Clear Cause register
+	mfc0	$t0,$13				# get Cause register, then clear it
+	mtc0	$0, $13
+
+	## restore registers
+	lw	$t0,0($sp)
+	lw	$t1,4($sp)
+	lw	$t2,8($sp) 
+	lw	$t3,12($sp) 
+	lw	$t4,16($sp)
+	lw	$t5,20($sp)
+	lw	$s0,24($sp) 
+	lw	$v0,28($sp)
+	lw	$a0,32($sp)
+	lw 	$a1,36($sp) 
+	lw 	$ra,40($sp) 
+	lw 	$at,44($sp) 
+	addiu	$sp,$sp,48
+	eret	

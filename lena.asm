@@ -3,7 +3,15 @@
 
 .eqv speed_animations 39
 
-.eqv without_color 0x00ffffff
+.eqv without_color	0x00ffffff
+
+.eqv offset_base_2x	0x00390000
+
+.eqv offset_base_4x	0x00003900
+
+.eqv offset_base_8x	0x00000039
+
+#.eqv offset_base_16x	0x00000040
 
 .data
 display_bitmap:	.space lenght_max
@@ -41,16 +49,21 @@ sw $v0, 0($t0)
 la $t0, height_lenght
 sw $v1, 0($t0)
 
+li $s4, 0#x80000000
+li $s5, 0#x80000000
+li $s6, 0
+li $s7, 0
+
 	main_loop:
 	lw $s7, keyboard
 	
 	beq $s7,  43, option_zoom_1	# Zoom +
 	beq $s7,  45, option_zoom_0	# Zoom -
 	
-	beq $s7,  37, option_se 	# Seta para Esquerda
-	beq $s7,  38, option_sc		# Seta para Cima
-	beq $s7,  39, option_sd 	# Seta para Direita
-	beq $s7,  40, option_sb 	# Seta para Baixo
+	beq $s7,  49, option_se 	# Seta para Esquerda
+	beq $s7,  53, option_sc		# Seta para Cima
+	beq $s7,  51, option_sd 	# Seta para Direita
+	beq $s7,  50, option_sb 	# Seta para Baixo
 	
 	beq $s7, 101, option_split_1 	# Dividir e
 	beq $s7, 102, option_split_2 	# Dividir f
@@ -76,6 +89,8 @@ sw $v1, 0($t0)
 	beq $s7,  99, option_grey_scale		# Escala de cinza c
 	beq $s7, 109, option_average_pixel	# Media dos pixels m
 	
+	beq $s7, 108, option_save_on_buff 	# Save the actually image on buffer
+	
 	beq $s7, 114, option_reset 	# Reset r
 	
 	beq $s7, 113, option_quit 	# Quit
@@ -83,23 +98,198 @@ sw $v1, 0($t0)
 	j main_loop
 	
 	option_zoom_1:	# Zoom +
+		li $s7, 0
+		sw $s7, keyboard
+		
+		addi $s6, $s6, 1
+		
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal zoom
+	
 		j main_loop
 	
 	
 	option_zoom_0:	# Zoom -
+		li $s7, 0
+		sw $s7, keyboard
+		
+		addi $s6, $s6, -1
+		
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		
+		bgtz $s6, zoom_0
+		
+		li $s4, 0
+		li $s5, 0
+		jal move_image
+		j main_loop
+		
+		
+		zoom_0:
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+		jal zoom
 		j main_loop
 		
 		
 	option_se: 	# Seta para Esquerda
+		li $s7, 0
+		sw $s7, keyboard
+		
+		beq $s6, 1, offset_zoom_2x_se
+		beq $s6, 2, offset_zoom_4x_se
+		beq $s6, 3, offset_zoom_8x_se
+		#beq $s6, 4, offset_zoom_16x_se
+		
+		offset_zoom_2x_se:
+			subi $s4, $s4, offset_base_2x
+			j continue_option_se
+		offset_zoom_4x_se:
+			subi $s4, $s4, offset_base_4x
+			j continue_option_se
+		offset_zoom_8x_se:
+			subi $s4, $s4, offset_base_8x
+			j continue_option_se
+		#offset_zoom_16x_se:
+			#subi $s4, $s4, offset_base_16x
+			#j continue_option_se
+		
+		continue_option_se:
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+		
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal zoom
+			
 		j main_loop
 		
+		
 	option_sc:	# Seta para Cima
+		li $s7, 0
+		sw $s7, keyboard
+		
+		beq $s6, 1, offset_zoom_2x_sc
+		beq $s6, 2, offset_zoom_4x_sc
+		beq $s6, 3, offset_zoom_8x_sc
+		#beq $s6, 4, offset_zoom_16x_sc
+		
+		offset_zoom_2x_sc:
+			subi $s5, $s5, offset_base_2x
+			j continue_option_sc
+		offset_zoom_4x_sc:
+			subi $s5, $s5, offset_base_4x
+			j continue_option_sc
+		offset_zoom_8x_sc:
+			subi $s5, $s5, offset_base_8x
+			j continue_option_sc
+		#offset_zoom_16x_sc:
+			#subi $s5, $s5, offset_base_16x
+			#j continue_option_sc
+		
+		continue_option_sc:
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+		
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal zoom
+			
 		j main_loop
+	
 	
 	option_sd: 	# Seta para Direita
+		li $s7, 0
+		sw $s7, keyboard
+			
+		beq $s6, 1, offset_zoom_2x_sd
+		beq $s6, 2, offset_zoom_4x_sd
+		beq $s6, 3, offset_zoom_8x_sd
+		#beq $s6, 4, offset_zoom_16x_sd
+		
+		offset_zoom_2x_sd:
+			addi $s4, $s4, offset_base_2x
+			j continue_option_sd
+		offset_zoom_4x_sd:
+			addi $s4, $s4, offset_base_4x
+			j continue_option_sd
+		offset_zoom_8x_sd:
+			addi $s4, $s4, offset_base_8x
+			j continue_option_sd
+		#offset_zoom_16x_sd:
+			#addi $s4, $s4, offset_base_16x
+			#j continue_option_sd
+		
+		continue_option_sd:
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+		
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal zoom
+		
 		j main_loop
 	
+	
 	option_sb: 	# Seta para Baixo
+		li $s7, 0
+		sw $s7, keyboard
+			
+		beq $s6, 1, offset_zoom_2x_sb
+		beq $s6, 2, offset_zoom_4x_sb
+		beq $s6, 3, offset_zoom_8x_sb
+		#beq $s6, 4, offset_zoom_16x_sd
+		
+		offset_zoom_2x_sb:
+			addi $s5, $s5, offset_base_2x
+			j continue_option_sb
+		offset_zoom_4x_sb:
+			addi $s5, $s5, offset_base_4x
+			j continue_option_sb
+		offset_zoom_8x_sb:
+			addi $s5, $s5, offset_base_8x
+			j continue_option_sb
+		#offset_zoom_16x_sb:
+			#addi $s5, $s5, offset_base_16x
+			#j continue_option_sb
+		
+		continue_option_sb:
+		addi $sp, $sp, -12
+		sw $s4, 0($sp)
+		sw $s5, 4($sp)
+		sw $s6, 8($sp)
+		
+		la $a0, buff
+		la $a1, display_bitmap
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal zoom
+		
 		j main_loop
 		
 		
@@ -320,13 +510,24 @@ sw $v1, 0($t0)
 		
 		j main_loop
 	
+	option_save_on_buff:
+		li $s7, 0
+		sw $s7, keyboard
+		
+		la $a0, display_bitmap
+		la $a1, buff
+		lw $a2, width_lenght
+		lw $a3, height_lenght
+		jal average_pixel
+		
+		j main_loop
 	
 	option_reset: 	# Reset r
 		li $s7, 0
 		sw $s7, keyboard
 		
 		la $a0, display_bitmap	#Pass the adress of display
-		la $a1, buff	#Pass the adress for de buffer
+		la $a1, buff		#Pass the adress for de buffer
 		la $a2, bmp_lenght
 		la $a3, filename
 		jal read_archive
@@ -1933,7 +2134,6 @@ zoom:
 	##############################
 	la   $a0, buff_tmp	#Update the source address to buff_tmp
 	
-	
 	lw $t6, 0($sp)
 	lw $t7, 4($sp)
 	lw $t8, 8($sp)
@@ -1952,6 +2152,7 @@ zoom:
 	sw $s7, 28($sp)
 	########################
 	
+	
 	move $s0, $t8
 	move $s1, $t7
 	move $s2, $t6
@@ -1959,33 +2160,69 @@ zoom:
 	div  $s3, $a2, 2
 	div  $s4, $a3, 2
 	
+	li $s5, 0
+	
 	loop_zoom_1:
 	
 	move $t0, $a0
 	move $t1, $a1
 	
 	mul $t2, $a2, $a3
-	li  $t3, 0
-
-
-	rem $t6, $s2, $s3
+	
+	addi $s5, $s5, 1
+	beq $s5, 1, offset_zoom_2x
+	beq $s5, 2, offset_zoom_4x
+	beq $s5, 3, offset_zoom_8x
+	#beq $s5, 4, offset_zoom_16x
+	
+	offset_zoom_2x:
+		srl $t6, $s2, 16
+		srl $t7, $s1, 16
+		andi $t6, $t6, 0x000000ff
+		andi $t7, $t7, 0x000000ff
+		j continue_zoom
+	
+	offset_zoom_4x:
+		srl  $t6, $s2, 8
+		srl  $t7, $s1, 8
+		andi $t6, $t6, 0x000000ff
+		andi $t7, $t7, 0x000000ff
+		j continue_zoom
+	
+	offset_zoom_8x:
+		srl  $t6, $s2, 0
+		srl  $t7, $s1, 0
+		andi $t6, $t6, 0x000000ff
+		andi $t7, $t7, 0x000000ff
+		j continue_zoom
+		
+	#offset_zoom_16x:
+		#srl  $t6, $s2, 0
+		#srl  $t7, $s1, 0
+	#	andi $t6, $t6, 0x000000ff
+	#	andi $t7, $t7, 0x000000ff
+	#	j continue_zoom
+	
+	
+	continue_zoom:
+	
+	#rem $t6, $s2, $s3
+	rem $t6, $t6, $s3
 	mul $t6, $t6, 4
 	add $t0, $t0, $t6
 	
-
-	rem $t7, $s1, $s4
+	#rem $t7, $s1, $s4
+	rem $t7, $t7, $s4
 	mul $t7, $t7, $a3
 	mul $t7, $t7, 4
 	add $t0, $t0, $t7
 	
+	li  $t3, 0
 	
 	mul $t8, $t2, 4
 	add $t8, $t8, $t1
 
-	#loop_zoom_1:
-	
-	
-	
+		
 		loop_zoom_2:
 		
 			lw $t9, 0($t0)
@@ -2011,9 +2248,9 @@ zoom:
 		
 		
 		
-		addi $s0, $s0, -1
-		div  $s2, $s2, $s3
-		div  $s1, $s1, $s4
+		addi $s0, $s0,  -1  ########
+		#div  $s2, $s2, $s3  ########
+		#div  $s1, $s1, $s4  ########
 		
 		# Copy the source image to buffer to be processed
 		addi $sp, $sp, -12
@@ -2032,7 +2269,7 @@ zoom:
 		##############################
 		la   $a0, buff_tmp####	#Update the source address to buff_tmp
 		
-	bgez $s0, loop_zoom_1
+	bgtz $s0, loop_zoom_1
 	
 	# Load all saved $sx registers
 	lw $s0, 0($sp)
